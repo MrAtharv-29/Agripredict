@@ -16,6 +16,11 @@ from data_manager import log_prediction, get_correlation_matrix, get_all_data
 from explainability import get_explanation
 from risk_engine import analyze_risks
 from harvest_engine import predict_harvest_time
+from agronomy_engine import get_growth_stage, detect_anomalies, calculate_heat_stress, get_multispectral_indices
+from economics_engine import calculate_profit, suggest_seasonal_crops
+from schemes_engine import get_schemes
+from digital_twin import run_simulation
+from sustainability_engine import calculate_sustainability_score
 
 # Load ML models
 try:
@@ -60,6 +65,11 @@ class PredictionResponse(BaseModel):
     explainability_insights: list[str]
     explainability_plot_url: str | None = None
     harvest_prediction: dict | None = None
+    growth_stage: dict | None = None
+    anomalies: list[dict] | None = None
+    profit_analysis: dict | None = None
+    government_schemes: list[dict] | None = None
+    sustainability_score: dict | None = None
 
 @app.post("/api/predict", response_model=PredictionResponse)
 async def predict_yield(data: FarmData):
@@ -94,6 +104,22 @@ async def predict_yield(data: FarmData):
         # Predict Harvest Time
         harvest_pred = predict_harvest_time(data.crop_type, data.sowing_date)
         
+        # Calculate Growth Stage
+        growth_stage = get_growth_stage(data.crop_type, data.sowing_date)
+        
+        # Detect Anomalies (Mock satellite data for detection)
+        mock_sat = {"ndvi_index": round(random.uniform(0.3, 0.8), 2)}
+        anomalies = detect_anomalies(data.model_dump(), mock_sat)
+        
+        # Calculate Profit
+        profit_analysis = calculate_profit(data.crop_type, predicted_yield)
+        
+        # Get Schemes
+        schemes = get_schemes(data.crop_type, data.location)
+        
+        # Calculate Sustainability
+        sustainability = calculate_sustainability_score(data.model_dump())
+        
         # Log to DB for dynamic modeling
         log_prediction(data.model_dump(), predicted_yield)
         
@@ -110,7 +136,12 @@ async def predict_yield(data: FarmData):
         recommendations=risk_analysis["recommendations"],
         explainability_insights=insights,
         explainability_plot_url=plot_url,
-        harvest_prediction=harvest_pred
+        harvest_prediction=harvest_pred,
+        growth_stage=growth_stage,
+        anomalies=anomalies,
+        profit_analysis=profit_analysis,
+        government_schemes=schemes,
+        sustainability_score=sustainability
     )
 
 @app.get("/api/admin/stats")
@@ -159,8 +190,8 @@ async def get_weather(location: str = "Pune"):
             
         lat, lon = location_data.latitude, location_data.longitude
         
-        # Call Open-Meteo API for 7 day forecast
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto"
+        # Call Open-Meteo API for 7 day forecast (Added wind_speed_10m and et0)
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,et0_fao_evapotranspiration&timezone=auto"
         
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
@@ -204,9 +235,12 @@ async def get_weather(location: str = "Pune"):
                 "temp": current.get("temperature_2m", 0),
                 "humidity": current.get("relative_humidity_2m", 0),
                 "rainfall_mm": current.get("precipitation", 0),
-                "condition": get_condition(current.get("weather_code", 0))
+                "wind_speed": current.get("wind_speed_10m", 0),
+                "condition": get_condition(current.get("weather_code", 0)),
+                "heat_stress": calculate_heat_stress(current.get("temperature_2m", 0), current.get("relative_humidity_2m", 0))
             },
-            "forecast_7_days": forecast_7_days
+            "forecast_7_days": forecast_7_days,
+            "daily_evapotranspiration": daily.get("et0_fao_evapotranspiration", [])
         }
         
     except Exception as e:
@@ -226,6 +260,46 @@ async def get_weather(location: str = "Pune"):
             ]
         }
 
+@app.get("/api/planning/suggest")
+async def get_crop_suggestions(n: float, p: float, k: float, location: str = "Unknown"):
+    suggestions = suggest_seasonal_crops(n, p, k, location)
+    return {"status": "success", "suggestions": suggestions}
+
+class SimulationRequest(BaseModel):
+    base_data: dict
+    modifications: list[dict]
+
+@app.post("/api/simulate")
+async def simulate_scenario(req: SimulationRequest):
+    if rf_model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+    
+    results = run_simulation(req.base_data, rf_model, label_encoder, req.modifications)
+    return {"status": "success", "results": results}
+
+@app.get("/api/supply-chain/regional")
+async def get_regional_production():
+    """Aggregates all predictions to estimate regional surplus/shortage."""
+    df = get_all_data()
+    if df.empty:
+        return {"status": "error", "message": "No data available"}
+    
+    regional_data = df.groupby('location')['predicted_yield'].agg(['sum', 'mean', 'count']).to_dict('index')
+    
+    # Add mock shortage/surplus logic
+    insights = []
+    for loc, stats in regional_data.items():
+        if stats['mean'] < 5.0:
+            insights.append(f"Potential shortage detected in {loc}. Average yield is below threshold.")
+        else:
+            insights.append(f"Surplus production expected in {loc}. Logistics planning recommended.")
+            
+    return {
+        "status": "success",
+        "regional_stats": regional_data,
+        "supply_chain_insights": insights
+    }
+
 @app.get("/api/satellite")
 async def get_satellite_data(location: str):
     geolocator = Nominatim(user_agent="agripredict_app_sat")
@@ -237,10 +311,14 @@ async def get_satellite_data(location: str):
     except Exception as e:
         print(f"Geocoding failed for satellite: {e}")
 
+    # Simulate Multi-Spectral Indices
+    ndvi = round(random.uniform(0.4, 0.8), 2)
+    indices = get_multispectral_indices(ndvi)
+
     return {
         "lat": lat,
         "lon": lon,
-        "ndvi_index": round(random.uniform(0.4, 0.8), 2),
+        "indices": indices,
         "crop_health": random.choice(["Good", "Excellent", "Fair", "Poor"]),
         "anomalies_detected": "None" if random.random() > 0.2 else "Potential pest stress in North sector"
     }
