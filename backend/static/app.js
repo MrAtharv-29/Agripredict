@@ -1,8 +1,8 @@
-// AgriPredict Dashboard Scripts
+// AgriPulse Dashboard Scripts
 
 const translations = {
     en: {
-        platform_sub: "AGRIPREDICT YIELD ANALYTICS PLATFORM",
+        platform_sub: "AGRIPULSE YIELD ANALYTICS PLATFORM",
         page_title: "Predictive Yield Modeling",
         page_subtitle: "Forecast harvest volume from crop, weather, nutrient, soil, and IoT signals.",
         download_report: "Download Report",
@@ -47,7 +47,7 @@ const translations = {
         irr_rainfed: "Rainfed", irr_canal: "Canal", irr_tubewell: "Tubewell"
     },
     hi: {
-        platform_sub: "एग्रीप्रेडिक्ट उपज एनालिटिक्स प्लेटफॉर्म",
+        platform_sub: "एग्रीपल्स उपज एनालिटिक्स प्लेटफॉर्म",
         page_title: "अनुमानित उपज मॉडलिंग",
         page_subtitle: "फसल, मौसम, पोषक तत्व, मिट्टी और IoT संकेतों से फसल की मात्रा का अनुमान लगाएं।",
         download_report: "रिपोर्ट डाउनलोड करें",
@@ -83,7 +83,7 @@ const translations = {
         irr_rainfed: "वर्षा आधारित", irr_canal: "नहर", irr_tubewell: "ट्यूबवेल"
     },
     mr: {
-        platform_sub: "अॅग्रीप्रेडिक्ट उत्पन्न विश्लेषिकी प्लॅटफॉर्म",
+        platform_sub: "अॅग्रीपल्स उत्पन्न विश्लेषिकी प्लॅटफॉर्म",
         page_title: "अंदाजित उत्पन्न मॉडेलिंग",
         page_subtitle: "पीक, हवामान, पोषक तत्त्वे, माती आणि IoT संकेतांवरून कापणीच्या प्रमाणाचा अंदाज लावा.",
         download_report: "अहवाल डाउनलोड करा",
@@ -136,7 +136,7 @@ function exportReport() {
     const element = document.getElementById('export-content');
     const opt = {
         margin: 0.5,
-        filename: `AgriPredict_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+        filename: `AgriPulse_Report_${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }

@@ -28,7 +28,7 @@ except Exception as e:
     rf_model = None
     label_encoder = None
 
-app = FastAPI(title="AgriPredict API")
+app = FastAPI(title="AgriPulse API")
 
 # Allow CORS for local development if frontend runs separately
 app.add_middleware(
@@ -150,7 +150,7 @@ async def get_correlation():
 
 @app.get("/api/weather")
 async def get_weather(location: str = "Pune"):
-    geolocator = Nominatim(user_agent="agripredict_app")
+    geolocator = Nominatim(user_agent="agripulse_app")
     try:
         # Use geopy to get lat/lon
         location_data = geolocator.geocode(location)
@@ -228,7 +228,7 @@ async def get_weather(location: str = "Pune"):
 
 @app.get("/api/satellite")
 async def get_satellite_data(location: str):
-    geolocator = Nominatim(user_agent="agripredict_app_sat")
+    geolocator = Nominatim(user_agent="agripulse_app_sat")
     lat, lon = 18.5204, 73.8567 # Default
     try:
         location_data = geolocator.geocode(location)

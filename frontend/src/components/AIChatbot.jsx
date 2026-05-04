@@ -11,7 +11,7 @@ export default function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hello! I am your AgriPredict AI Assistant. Ask me anything about your farm, weather, or yield forecasts.' }
+    { role: 'ai', text: 'Hello! I am your AgriPulse AI Assistant. Ask me anything about your farm, weather, or yield forecasts.' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -138,7 +138,7 @@ export default function AIChatbot() {
                   <Bot size={18} className="text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-zinc-100 text-sm">AgriPredict Assistant</h3>
+                  <h3 className="font-bold text-zinc-100 text-sm">AgriPulse Assistant</h3>
                   <p className="text-[10px] text-emerald-400 font-medium">Online • Powered by AI</p>
                 </div>
               </div>

@@ -19,7 +19,7 @@ export default function TopNav() {
     
     const opt = {
       margin:       0.5,
-      filename:     `AgriPredict_Report_${formData.crop_type}_${new Date().toISOString().split('T')[0]}.pdf`,
+      filename:     `AgriPulse_Report_${formData.crop_type}_${new Date().toISOString().split('T')[0]}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }

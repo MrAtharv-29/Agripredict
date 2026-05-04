@@ -1,6 +1,6 @@
 {
-  "name": "AgriPredict Yield Platform",
-  "short_name": "AgriPredict",
+  "name": "AgriPulse Yield Platform",
+  "short_name": "AgriPulse",
   "description": "AI-powered yield prediction and farm insights.",
   "start_url": "./",
   "display": "standalone",

@@ -17,7 +17,7 @@ export default function Sidebar() {
         <div className="w-8 h-8 rounded bg-emerald-500 flex items-center justify-center text-white font-bold">
           <Sprout size={20} />
         </div>
-        <span className="text-xl font-bold text-white tracking-tight">AgriPredict</span>
+        <span className="text-xl font-bold text-white tracking-tight">AgriPulse</span>
       </div>
 
       <nav className="flex-1 px-4 space-y-2 mt-4">
