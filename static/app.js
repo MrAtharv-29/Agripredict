@@ -33,6 +33,7 @@ const translations = {
         validation: "VALIDATION", model_perf: "Model Performance",
         explainability: "EXPLAINABILITY", feature_impact: "Feature Impact", impact_waiting: "Run a forecast to view AI insights on feature impact.",
         what_if: "WHAT-IF", scenario_planner: "Scenario Planner", run_scenarios: "Run Scenarios", scenario_waiting: "No scenarios run yet. Adjust parameters to see what-if differences.",
+        geospatial: "GEOSPATIAL", satellite_map: "Satellite & NDVI Map",
         chart_trend: "Average Yield Trend by Crop", chart_region: "Regional Yield Comparison", chart_heatmap: "Soil and Irrigation Yield Matrix",
         dataset: "DATASET", sample_data: "Sample Processed Data",
         th_year: "YEAR", th_crop: "CROP", th_region: "REGION", th_rain: "RAINFALL", th_ndvi: "NDVI", th_yield: "YIELD",
@@ -68,6 +69,7 @@ const translations = {
         validation: "सत्यापन", model_perf: "मॉडल का प्रदर्शन",
         explainability: "व्याख्यात्मकता", feature_impact: "विशेषता का प्रभाव", impact_waiting: "विशेषता के प्रभाव पर AI अंतर्दृष्टि देखने के लिए पूर्वानुमान चलाएं।",
         what_if: "क्या होगा यदि", scenario_planner: "परिदृश्य योजनाकार", run_scenarios: "परिदृश्य चलाएं", scenario_waiting: "अभी तक कोई परिदृश्य नहीं चला है।",
+        geospatial: "भू-स्थानिक", satellite_map: "सैटेलाइट और NDVI मानचित्र",
         chart_trend: "फसल के अनुसार औसत उपज की प्रवृत्ति", chart_region: "क्षेत्रीय उपज तुलना", chart_heatmap: "मिट्टी और सिंचाई उपज मैट्रिक्स",
         dataset: "डेटासेट", sample_data: "नमूना प्रसंस्कृत डेटा",
         th_year: "वर्ष", th_crop: "फसल", th_region: "क्षेत्र", th_rain: "वर्षा", th_ndvi: "NDVI", th_yield: "उपज",
@@ -103,6 +105,7 @@ const translations = {
         validation: "प्रमाणीकरण", model_perf: "मॉडेलची कामगिरी",
         explainability: "स्पष्टीकरण", feature_impact: "वैशिष्ट्यांचा प्रभाव", impact_waiting: "माहिती पाहण्यासाठी अंदाज चालवा.",
         what_if: "जर-तर", scenario_planner: "परिदृश्य नियोजक", run_scenarios: "परिदृश्य चालवा", scenario_waiting: "अद्याप कोणतेही परिदृश्य चालवले नाही.",
+        geospatial: "भू-स्थानिक", satellite_map: "उपग्रह आणि NDVI नकाशा",
         chart_trend: "पिकांनुसार सरासरी उत्पन्न कल", chart_region: "प्रादेशिक उत्पन्न तुलना", chart_heatmap: "माती आणि सिंचन उत्पन्न मॅट्रिक्स",
         dataset: "डेटासेट", sample_data: "नमुना प्रक्रिया केलेला डेटा",
         th_year: "वर्ष", th_crop: "पीक", th_region: "प्रदेश", th_rain: "पाऊस", th_ndvi: "NDVI", th_yield: "उत्पन्न",
@@ -151,10 +154,61 @@ const cropBaselines = {
 
 document.addEventListener("DOMContentLoaded", () => {
     initCharts();
+    initMap();
     setupForm();
     updateSimulatedConditions();
     updateTimestamp();
 });
+
+let farmMap = null;
+let mapPolygon = null;
+
+function initMap() {
+    const mapEl = document.getElementById('farm-map');
+    if (!mapEl || typeof L === 'undefined') return;
+    
+    // Default to central India
+    farmMap = L.map('farm-map').setView([21.1458, 79.0882], 5);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(farmMap);
+}
+
+function updateMapForRegion(regionName, ndviValue) {
+    if (!farmMap) return;
+    
+    const regionCoords = {
+        'North': [28.7041, 77.1025], // Delhi/Punjab
+        'South': [13.0827, 80.2707], // Chennai/TN
+        'East': [22.5726, 88.3639],  // Kolkata
+        'West': [19.0760, 72.8777],  // Mumbai/MH
+        'Central': [21.1458, 79.0882] // Nagpur
+    };
+    
+    const coords = regionCoords[regionName] || regionCoords['Central'];
+    farmMap.flyTo(coords, 10);
+    
+    if (mapPolygon) {
+        farmMap.removeLayer(mapPolygon);
+    }
+    
+    // Create a mock polygon representing a farm
+    const bounds = [
+        [coords[0] - 0.05, coords[1] - 0.05],
+        [coords[0] + 0.05, coords[1] + 0.05]
+    ];
+    
+    // Color based on NDVI (higher = greener)
+    let polyColor = '#facc15'; // Yellow (low)
+    if (ndviValue > 0.6) polyColor = '#22c55e'; // Green (good)
+    if (ndviValue > 0.8) polyColor = '#15803d'; // Dark Green (excellent)
+    if (ndviValue < 0.4) polyColor = '#ef4444'; // Red (poor)
+
+    mapPolygon = L.rectangle(bounds, {color: polyColor, weight: 1, fillOpacity: 0.6}).addTo(farmMap);
+    mapPolygon.bindPopup(`<b>${regionName} Farm</b><br>NDVI Scan: ${ndviValue}`).openPopup();
+}
 
 function applyPreset(type) {
     const preset = cropBaselines[type];
@@ -248,6 +302,10 @@ function setupForm() {
             document.getElementById('res-confidence').innerText = `${lowerBound} - ${upperBound}`;
             
             document.getElementById('res-top-region').innerText = requestData.location;
+
+            // Update Map
+            const ndviVal = parseFloat(document.getElementById('ndvi').value) || 0.5;
+            updateMapForRegion(requestData.location, ndviVal);
 
             // 1. Action Plan
             const actionList = document.getElementById('action-plan-list');

@@ -11,6 +11,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- html2pdf for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Leaflet for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
     <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
@@ -315,6 +320,12 @@
                         <p class="text-muted" data-i18n="run_scenarios">Run Scenarios</p>
                         <div class="scenario-empty" id="scenario-container" data-i18n="scenario_waiting">No scenarios run yet. Adjust parameters to see what-if differences.</div>
                     </div>
+                </section>
+                
+                <section class="satellite-map section-block card-glass hover-glow">
+                    <h5 class="section-title" data-i18n="geospatial">GEOSPATIAL</h5>
+                    <h3 data-i18n="satellite_map">Satellite & NDVI Map</h3>
+                    <div id="farm-map" style="height: 350px; width: 100%; border-radius: var(--radius-md); z-index: 1;"></div>
                 </section>
                 
                 <section class="charts-section section-block card-glass hover-glow">
