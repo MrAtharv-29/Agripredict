@@ -6,8 +6,8 @@ import uvicorn
 backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'backend'))
 sys.path.insert(0, backend_path)
 
-# Import the FastAPI app from backend/main.py
-from main import app
+# Import the FastAPI app from backend/main.py using explicit module path
+from backend.main import app
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
