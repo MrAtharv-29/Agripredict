@@ -12,7 +12,7 @@ export default function ForecastForm() {
     e.preventDefault();
     setIsPredicting(true);
     try {
-      const res = await axios.post('http://localhost:8000/api/predict', {
+      const res = await axios.post('/api/predict', {
         crop_type: formData.crop_type,
         location: formData.location,
         soil_n: formData.soil_n,
